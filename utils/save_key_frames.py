@@ -2,6 +2,30 @@ import cv2
 import argparse
 import numpy as np 
 import os
+import multiprocessing as mp
+import fnmatch
+
+def collect_video_filepaths(
+    data_dir, 
+    extensions=[
+        '*.mp4', 
+        '*.avi', 
+        '*.mkv', 
+        '*.mov'
+    ]
+):
+    video_filepath_lst = []
+    for root, dir, files in os.walk(data_dir):
+        for extension in extensions:
+            for filename in fnmatch.filter(
+                map(str.lower, files),
+                extension
+            ):
+                video_filepath_lst.append(
+                    os.path.join(root, filename)
+                )
+
+    return video_filepath_lst
 
 def save_video_frames(
     video_path, 
@@ -10,13 +34,11 @@ def save_video_frames(
 ):
     video_name = video_path.split('/')[-1].split('.')[0]
     cap = cv2.VideoCapture(video_path)
-    #cap.set(cv2.CAP_PROP_FPS, fps)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_rate = int(cap.get(cv2.CAP_PROP_FPS))
     frame_interval = int(frame_rate * interval)
     frame_idx = 0
 
-    print('Start extracing frames...')
     for i in range(0, frame_count, frame_interval):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ret, frame = cap.read()
@@ -29,18 +51,22 @@ def save_video_frames(
         
     cap.release()
 
+def process_video(args):
+    save_video_frames(*args)
 
 def main():
-    parser = argparse.ArgumentParser(description='Arguments for save frames program') 
+    parser = argparse.ArgumentParser(
+        description='Arguments for save frames program'
+    ) 
     parser.add_argument(
-        '--video_path',
+        '--data_dir',
         type=str,
         required=True
     )
     parser.add_argument(
         '--save_dir',
         type=str,
-        default='./resources/save_extracted_frames'
+        default='./data/save_extracted_frames'
     )   
     parser.add_argument(
         '--time_interval',
@@ -53,12 +79,21 @@ def main():
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    save_video_frames(
-        args.video_path,
-        args.save_dir,
-        args.time_interval
+    video_filepath_lst = collect_video_filepaths(
+        data_dir=args.data_dir
     )
 
+    num_processes = mp.cpu_count() - 4
+    print('Total num processes: ', num_processes)
+
+    with mp.Pool(num_processes) as p:
+        p.map(
+            process_video, 
+            [
+                (f, args.save_dir, args.time_interval) \
+                    for f in video_files
+            ]
+        )
 
 if __name__ == '__main__':
     main()
