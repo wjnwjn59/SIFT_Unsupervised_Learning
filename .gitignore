@@ -1,5 +1,8 @@
 __pycache__
 
+# Dataset resources
+./resources
+
 # MACOS
 __MACOSX
 .DS_Store
