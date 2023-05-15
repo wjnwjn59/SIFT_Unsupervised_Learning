@@ -16,8 +16,8 @@ class PatchesDataset(Dataset):
         return len(self.data_df)
 
     def __getitem__(self, index):
-        img1_filepath = os.path.join(self.image_folder, self.data_df.iloc[index, 0])
-        img2_filepath = os.path.join(self.image_folder, self.data_df.iloc[index, 1])
+        img1_filepath = self.data_df.iloc[index, 0]
+        img2_filepath = self.data_df.iloc[index, 1]
         label = self.data_df.iloc[index, 2]
         img1 = Image.open(img1_filepath).convert('RGB')
         img2 = Image.open(img2_filepath).convert('RGB')

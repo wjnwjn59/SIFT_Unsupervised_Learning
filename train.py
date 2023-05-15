@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+import numpy as np
 import os
 import argparse
 import random
@@ -16,6 +17,7 @@ from networks.SiameseNet import (
     contrastive_loss
 )
 from data.datasets import PatchesDataset
+from utils.loss import ContrastiveLoss
 
 EPOCHS = 200
 TRAIN_SIZE = 0.7
@@ -55,9 +57,10 @@ def test(
             outputs1, outputs2 = model(images1, images2)
             euclid_dist = nn.functional.pairwise_distance(outputs1, outputs2)
 
-            loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
+            # loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
+            loss  = criterion(outputs1, outputs2, labels)
+            
             running_items += images1.size(0)
-        
             val_loss += loss.item() * images1.size(0)
 
             predictions = (euclid_dist < margin).float()
@@ -93,14 +96,14 @@ def train(
             outputs1, outputs2 = model(images1, images2)
             euclid_dist = nn.functional.pairwise_distance(outputs1, outputs2)
 
-            loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
-
+            # loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
+            loss  = criterion(outputs1, outputs2, labels)
             loss.backward()
 
             optimizer.step()
             
-            running_items += images.size(0)
-            train_loss += loss.item() * images.size(0)
+            running_items += images1.size(0)
+            train_loss += loss.item() * images1.size(0)
             
         train_loss = train_loss / running_items
         val_loss, val_acc = test(
@@ -159,7 +162,7 @@ def main():
         )
     ])
 
-    dataset = PatchesDataset(
+    task_dataset = PatchesDataset(
         root_dataset=args.root_dir,
         transforms=image_transforms
     )
@@ -199,7 +202,7 @@ def main():
     #     step_size=10, 
     #     gamma=0.1
     # )
-    criterion = contrastive_loss
+    criterion = ContrastiveLoss()
 
     train(
         model=model,
