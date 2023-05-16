@@ -21,7 +21,7 @@ class SiameseVGG16(nn.Module):
         self.encoder = nn.Sequential(*list(vgg16.features.children()))
         self.fc1 = nn.Linear(512 * 7 * 7, 4096)
         # self.fc2 = nn.Linear(4096, 1)
-        self.fc2 = nn.Linear(4096, 2)
+        self.fc2 = nn.Linear(4096, 10)
 
 
     def forward_once(self, x):
