@@ -1,0 +1,13 @@
+patch_left,patch_right,label
+./data/patches_samples/pair_0_patch_0.jpg,./data/patches_samples/pair_0_patch_1.jpg,0
+./data/patches_samples/pair_1_patch_0.jpg,./data/patches_samples/pair_1_patch_1.jpg,0
+./data/patches_samples/pair_2_patch_0.jpg,./data/patches_samples/pair_2_patch_1.jpg,0
+./data/patches_samples/pair_3_patch_0.jpg,./data/patches_samples/pair_3_patch_1.jpg,0
+./data/patches_samples/pair_4_patch_0.jpg,./data/patches_samples/pair_4_patch_1.jpg,0
+./data/patches_samples/pair_5_patch_0.jpg,./data/patches_samples/pair_5_patch_1.jpg,0
+./data/patches_samples/pair_6_patch_0.jpg,./data/patches_samples/pair_6_patch_1.jpg,0
+./data/patches_samples/pair_7_patch_0.jpg,./data/patches_samples/pair_7_patch_1.jpg,0
+./data/patches_samples/pair_8_patch_0.jpg,./data/patches_samples/pair_8_patch_1.jpg,0
+./data/patches_samples/pair_9_patch_0.jpg,./data/patches_samples/pair_9_patch_1.jpg,0
+./data/patches_samples/pair_10_patch_0.jpg,./data/patches_samples/pair_10_patch_1.jpg,0
+./data/patches_samples/pair_11_patch_0.jpg,./data/patches_samples/pair_11_patch_1.jpg,0

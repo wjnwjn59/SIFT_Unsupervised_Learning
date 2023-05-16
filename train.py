@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+import numpy as np
 import os
 import argparse
 import random
@@ -16,6 +17,7 @@ from networks.SiameseNet import (
     contrastive_loss
 )
 from data.datasets import PatchesDataset
+from utils.loss import ContrastiveLoss
 
 EPOCHS = 200
 TRAIN_SIZE = 0.7
@@ -53,15 +55,15 @@ def test(
             labels = labels.to(device)
             
             outputs1, outputs2 = model(images1, images2)
-            euclid_dist = nn.functional.pairwise_distance(outputs1, outputs2)
+            loss  = criterion(outputs1, outputs2, labels)
 
-            loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
+            euclid_dist = nn.functional.pairwise_distance(outputs1, outputs2)
+            
             running_items += images1.size(0)
-        
             val_loss += loss.item() * images1.size(0)
 
-            predictions = (euclid_dist < margin).float()
-            correct += (predictions == labels).sum().item() * images1.size(0)
+            predictions = (euclid_dist > margin).float()
+            correct += (predictions == labels).sum().item()
 
     val_loss = val_loss / running_items
     val_acc = correct / running_items
@@ -84,6 +86,7 @@ def train(
         
         train_loss = 0.0
         running_items = 0
+        correct = 0
         for idx, (inputs, labels) in enumerate(train_dataloader):
             images1, images2 = inputs
             images1 = images1.to(device)
@@ -91,18 +94,22 @@ def train(
             labels = labels.to(device)
             
             outputs1, outputs2 = model(images1, images2)
-            euclid_dist = nn.functional.pairwise_distance(outputs1, outputs2)
+            loss  = criterion(outputs1, outputs2, labels)
 
-            loss = criterion(outputs1, outputs2, euclid_dist, labels, margin)
-
+            euclidean_distance = F.pairwise_distance(outputs1, outputs2)
+            predictions = (euclidean_distance > margin).float()
+            correct += (predictions == labels).sum().item()
+            
             loss.backward()
-
             optimizer.step()
             
-            running_items += images.size(0)
-            train_loss += loss.item() * images.size(0)
-            
+            running_items += images1.size(0)
+            train_loss += loss.item() * images1.size(0)
+        
         train_loss = train_loss / running_items
+        train_acc = correct / running_items
+
+
         val_loss, val_acc = test(
             model,
             val_dataloader,
@@ -111,7 +118,9 @@ def train(
             margin=2.0
         )
         
-        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
+        print(f'Epoch {epoch+1}/{num_epochs}, \
+              Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, \
+              Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}')
 
 def main():
     parser = argparse.ArgumentParser()
@@ -159,7 +168,7 @@ def main():
         )
     ])
 
-    dataset = PatchesDataset(
+    task_dataset = PatchesDataset(
         root_dataset=args.root_dir,
         transforms=image_transforms
     )
@@ -199,7 +208,7 @@ def main():
     #     step_size=10, 
     #     gamma=0.1
     # )
-    criterion = contrastive_loss
+    criterion = ContrastiveLoss()
 
     train(
         model=model,

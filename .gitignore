@@ -6,3 +6,5 @@ __pycache__
 # MACOS
 __MACOSX
 .DS_Store
+/data/patches_samples/
+/data/save_extracted_frames/

@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-import numpy as np
-from torchvision.models import vgg16
+import torchvision
 
-import torch.nn as nn
 
 def initialize_weights(
     model, 
@@ -18,15 +16,18 @@ def initialize_weights(
 class SiameseVGG16(nn.Module):
     def __init__(self):
         super(SiameseVGG16, self).__init__()
-        vgg16 = vgg16(pretrained=False)
+        vgg16 =  torchvision.models.vgg16(weights=None)
         initialize_weights(vgg16, nn.init.kaiming_normal_)
         self.encoder = nn.Sequential(*list(vgg16.features.children()))
         self.fc1 = nn.Linear(512 * 7 * 7, 4096)
-        self.fc2 = nn.Linear(4096, 1)
+        # self.fc2 = nn.Linear(4096, 1)
+        self.fc2 = nn.Linear(4096, 10)
+
 
     def forward_once(self, x):
         x = self.encoder(x)
-        x = x.view(-1, 512 * 7 * 7)
+        # x = x.view(-1, 512 * 7 * 7)
+        x = x.view(x.size(0), -1)
         x = self.fc1(x)
         x = nn.functional.relu(x)
         x = self.fc2(x)
